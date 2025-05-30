@@ -1,0 +1,71 @@
+---
+users:
+  - user_01:
+    name: "{{ full_name[0] }}"
+    admin: true
+    age: 30
+    position_current: "{{ array_position[0] }}"
+    skills:
+      - name: "{{ array_skills[0].name }}"
+        description: "{{ array_skills[0].description }}"
+        level: "{{ array_skills_level[3] }}"
+      - name: "{{ array_skills[1].name }}"
+        description: "{{ array_skills[1].description }}"
+        level: "{{ array_skills_level[0] }}"
+    residence:
+      country: "{{ array_country[0] }}"
+      city: "{{ array_city[0] }}"
+      street: "{{ array_street[0] }}"
+      number_house: 15
+      number_flat: 1
+    pets:
+      - name: "{{ array_pets_name[0] }}"
+        breed: "{{ array_pets_breed[0] }}"
+        meow: false
+    other: ["Коммуникация", "Работа в команде"]
+
+full_name:
+  - "Иванов Иван Иваныч"
+  - "Петров Петр Петрович"
+
+array_position:
+  - "SRE-инженер"
+  - "DevSecOps-инженер"
+
+array_skills:
+  - name: "Kubernetes"
+    description: |
+      Поддержание высокой доступности сервисов. Разработка стратегий и инструментов для минимизации времени простоя и быстрого восстановления после инцидентов.
+      Мониторинг систем. Отслеживание производительности и состояния инфраструктуры, чтобы вовремя выявлять и предотвращать потенциальные сбои.
+      Управление инцидентами. Диагностика, устранение и предотвращение проблем в системах.
+  - name: "Information Security"
+    description: |
+      Обеспечение безопасности контейнеров, включая использование безопасных образов, ограничение доступа к ресурсам и настройка механизмов мониторинга и аудита.
+      Обеспечение безопасности хранения данных в Docker, включая использование безопасных хранилищ, шифрование данных и настройка механизмов доступа.
+
+array_skills_level: # Уровень владение от 1 до 5
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+
+array_country:
+  - "Россия"
+  - "Германия"
+
+array_city:
+  - "Москва"
+  - "Бремен"
+
+array_street:
+  - "Веселая"
+  - "Шнор"
+
+array_pets_name:
+  - "Джульбарс"
+  - "Матрена"
+
+array_pets_breed:
+  - "Собака"
+  - "Кошка"
