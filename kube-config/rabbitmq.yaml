@@ -1,0 +1,123 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbitmq-pvc
+  namespace: conv-app
+spec:
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 200Mi
+  accessModes:
+  - ReadWriteOnce
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-clusterip
+  namespace: conv-app
+spec:
+  type: ClusterIP
+  ports:
+    - name: amqp
+      port: 5672
+      protocol: TCP
+    - name: http
+      port: 15672
+      protocol: TCP
+  selector:
+    components: rabbitmq
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-deployment
+  namespace: conv-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      components: rabbitmq
+  template:
+    metadata:
+      labels:
+        components: rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3.12.7-management
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "320Mi"
+            cpu: "300m"
+        # startupProbe:
+        #   exec:
+        #     command:
+        #     - curl
+        #     - --fail
+        #     - --max-time
+        #     - "10"
+        #     - http://localhost:80
+        #   timeoutSeconds: 30
+        #   periodSeconds: 5
+        #   failureThreshold: 3
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #     - curl
+        #     - --fail
+        #     - --max-time
+        #     - "10"
+        #     - http://localhost:80
+        #   initialDelaySeconds: 200
+        #   timeoutSeconds: 10
+        #   periodSeconds: 5
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #     - curl
+        #     - --fail
+        #     - --max-time
+        #     - "10"
+        #     - http://localhost:80
+        #   initialDelaySeconds: 200
+        #   timeoutSeconds: 10
+        #   periodSeconds: 5
+        #   failureThreshold: 5
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          valueFrom:
+            secretKeyRef:
+              name: conv-app-secrets
+              key: RABBITMQ_DEFAULT_USER
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: conv-app-secrets
+              key: RABBITMQ_DEFAULT_PASS
+        # - name: SEED_USERNAME
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: conv-app-secrets
+        #       key: SEED_USERNAME
+        # - name: SEED_USER_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: conv-app-secrets
+        #       key: SEED_USER_PASSWORD
+        volumeMounts:
+        - name: data-rabbitmq
+          mountPath: "/var/lib/rabbitmq"
+          # mountPath: /var/lib/rabbitmq/mnesia/rabbit@rabbitmq-conv-app
+      volumes:
+      - name: data-rabbitmq
+        persistentVolumeClaim:
+          claimName: rabbitmq-pvc
