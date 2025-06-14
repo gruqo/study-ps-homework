@@ -1,0 +1,110 @@
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: conv-app-configmap
+#   namespace: conv-app
+# data:
+#   WHITE_DOMAIN: "conv.test"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conv-app-clusterip
+  namespace: conv-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      protocol: TCP
+  selector:
+    components: frontend-conv
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: conv-app-ingress
+  namespace: conv-app
+  annotations:
+    nginx.ingress.kubernetes.io/add-base-url: "true"
+spec:
+  rules:
+  - host: conv.test
+    http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: conv-app-clusterip
+            port:
+              number: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conv-app-deployment
+  namespace: conv-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      components: frontend-conv
+  template:
+    metadata:
+      labels:
+        components: frontend-conv
+    spec:
+      containers:
+      - name: conv-app
+        image: antonlarichev/conv-app:1.2
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "320Mi"
+            cpu: "200m"
+        # startupProbe:
+        #   exec:
+        #     command:
+        #     - curl
+        #     - --fail
+        #     - --max-time
+        #     - "10"
+        #     - http://localhost:80
+        #   timeoutSeconds: 30
+        #   periodSeconds: 5
+        #   failureThreshold: 3
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #     - curl
+        #     - --fail
+        #     - --max-time
+        #     - "10"
+        #     - http://localhost:80
+        #   initialDelaySeconds: 200
+        #   timeoutSeconds: 10
+        #   periodSeconds: 5
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #     - curl
+        #     - --fail
+        #     - --max-time
+        #     - "10"
+        #     - http://localhost:80
+        #   initialDelaySeconds: 200
+        #   timeoutSeconds: 10
+        #   periodSeconds: 5
+        #   failureThreshold: 5
+        env:
+        - name: WHITE_DOMAIN
+          valueFrom:
+            configMapKeyRef:
+              name: conv-app-configmaps-vars
+              key: WHITE_DOMAIN
