@@ -1,0 +1,102 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: converter-clusterip
+  namespace: conv-app
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4000
+      protocol: TCP
+  selector:
+    components: converter
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: converter-deployment
+  namespace: conv-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      components: converter
+  template:
+    metadata:
+      labels:
+        components: converter
+    spec:
+      containers:
+      - name: converter
+        image: antonlarichev/conv-service:1.0
+        ports:
+        - containerPort: 4000
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "320Mi"
+            cpu: "200m"
+        # startupProbe:
+        #   exec:
+        #     command:
+        #     - curl
+        #     - --fail
+        #     - --max-time
+        #     - "10"
+        #     - http://localhost:80
+        #   timeoutSeconds: 30
+        #   periodSeconds: 5
+        #   failureThreshold: 3
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #     - curl
+        #     - --fail
+        #     - --max-time
+        #     - "10"
+        #     - http://localhost:80
+        #   initialDelaySeconds: 200
+        #   timeoutSeconds: 10
+        #   periodSeconds: 5
+        #   failureThreshold: 3
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #     - curl
+        #     - --fail
+        #     - --max-time
+        #     - "10"
+        #     - http://localhost:80
+        #   initialDelaySeconds: 200
+        #   timeoutSeconds: 10
+        #   periodSeconds: 5
+        #   failureThreshold: 5
+        env:
+        - name: AMQP_HOSTNAME
+          valueFrom:
+            configMapKeyRef:
+              key: AMQP_HOSTNAME
+              name: conv-app-configmaps-vars
+        - name: AMQP_EXCHANGE
+          valueFrom:
+            configMapKeyRef:
+              key: AMQP_EXCHANGE
+              name: conv-app-configmaps-vars
+        - name: AMQP_QUENE
+          valueFrom:
+            configMapKeyRef:
+              key: AMQP_QUENE
+              name: conv-app-configmaps-vars
+        - name: AMQP_USER
+          valueFrom:
+            secretKeyRef:
+              name: conv-app-secrets
+              key: RABBITMQ_DEFAULT_USER
+        - name: AMQP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: conv-app-secrets
+              key: RABBITMQ_DEFAULT_PASS
