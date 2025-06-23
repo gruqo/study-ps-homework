@@ -1,0 +1,101 @@
+common:
+  namespace: conv-app
+  configMapName: configmaps-vars
+  amqp_hostname: rabbitmq-clusterip
+  amqp_exchange: demo
+  ampq_queue: converter
+
+common_net:
+  host: conv.test
+  protocol: http
+  service_type: clusterip
+
+services:
+  - name: app
+    components: conv-frontend
+    image:
+      name: antonlarichev/conv-app
+      version: "1.2"
+    replicas: 1
+    net:
+      - port: 80
+        path: "/"
+        protocol: TCP
+    limits:
+      memory: "320Mi"
+      cpu: "200m"
+    envs:
+    - VITE_DOMAIN
+  - name: api
+    components: conv-backend
+    image:
+      name: antonlarichev/conv-api
+      version: "1.0"
+    replicas: 1
+    net:
+      - port: 3000
+        path: "/api"
+        path_2: "/uploads"
+        protocol: TCP
+      # - port: 3000
+      #   path: "/uploads"
+      #   protocol: TCP
+    limits:
+      memory: "320Mi"
+      cpu: "200m"
+    volume: 
+      -  name: data
+         class_name: local-path
+         capacity: 100Mi
+         mount_path: /opt/app/uploads
+    envs:
+      - AMQP_HOSTNAME
+      - AMQP_EXCHANGE
+    secrets:
+      - name: AMQP_USER
+        key: AMQP_USER_NAME
+      - name: AMQP_PASSWORD
+        key: AMQP_USER_PASSWORD
+  - name: converter
+    components: converter
+    image:
+      name: antonlarichev/conv-service
+      version: "1.0"
+    replicas: 1
+    net:
+      - port: 4000
+        protocol: TCP
+    limits:
+      memory: "320Mi"
+      cpu: "200m"
+    envs:
+      - AMQP_HOSTNAME
+      - AMQP_EXCHANGE
+      - AMQP_QUEUE
+    secrets:
+      - name: AMQP_USER
+        key: AMQP_USER_NAME
+      - name: AMQP_PASSWORD
+        key: AMQP_USER_PASSWORD
+  - name: rabbitmq
+    components: rabbitmq
+    image:
+      name: rabbitmq
+      version: "3.8.34-management"
+    replicas: 1
+    net:
+      - port: 5672
+        protocol: TCP
+    limits:
+      memory: "320Mi"
+      cpu: "300m"
+    volume: 
+      -  name: data
+         class_name: local-path
+         capacity: 512Mi
+         mount_path: /var/lib/rabbitmq
+    secrets:
+      - name: RABBITMQ_DEFAULT_USER
+        key: AMQP_USER_NAME
+      - name: RABBITMQ_DEFAULT_PASS
+        key: AMQP_USER_PASSWORD

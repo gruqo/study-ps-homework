@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "conv-app-{{ .Values.common.configMapName }}-common"
+  namespace: {{ .Values.common.namespace }}
+data:
+  VITE_DOMAIN: ""
+  AMQP_HOSTNAME: {{ .Values.common.amqp_hostname }}
+  AMQP_EXCHANGE: {{ .Values.common.amqp_exchange }}
+  AMQP_QUEUE: {{ .Values.common.ampq_quene }}
+  

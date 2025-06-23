@@ -1,0 +1,20 @@
+{{- range $service := .Values.services }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ $service.name }}-{{ $.Values.common_net.service_type }}"
+  namespace: {{ $.Values.common.namespace }}
+spec:
+  selector:
+    components: {{ $service.components }}
+  ports:
+  {{- range $port := $service.net }}
+  - port: {{ $port.port }}
+    {{- if $port.name }}
+    name: {{ $port.name }}
+    {{- end }}
+    protocol: {{ $port.protocol }}
+  {{- end }}
+  type: ClusterIP
+{{- end }}

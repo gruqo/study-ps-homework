@@ -1,0 +1,53 @@
+{{- range $service := .Values.services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ $service.name }}-deployment"
+  namespace: {{ $.Values.common.namespace }}
+spec:
+  replicas: {{ $service.replicas }}
+  selector:
+    matchLabels:
+      components: {{ $service.components }}
+  template:
+    metadata:
+      labels:
+        components: {{ $service.components }}
+    spec:
+      containers:
+      - name: {{ $service.name }}
+        image: "{{ $service.image.name }}:{{ $service.image.version }}"
+        ports:
+        {{- range $net := $service.net }}
+        - containerPort: {{ $net.port }}
+          protocol: {{ $net.protocol }}
+        {{- end }}
+        resources:
+          limits: {{ $service.limits | toYaml | nindent 12 }}
+        {{- if or $service.envs $service.secrets }}
+        env:
+        {{- range $env := $service.envs }}
+        {{- $data_e := dict "env" $env "root" $ }}
+        {{- include "env.template" $data_e | indent 8 }}
+        {{- end}}
+        {{- range $secret := $service.secrets }}
+        {{- $data_s := dict "name" $secret.name "key" $secret.key }}
+        {{- include "secrets.template" $data_s | indent 8 }}
+        {{- end}}
+        {{- end}}
+        {{- if $service.volume }}
+        volumeMounts:
+        {{- range $volume_m := $service.volume }}
+        {{- $volumeMounts := dict "volume" $volume_m "service_name" $service.name }}
+        {{- include "volumeMounts.template" $volumeMounts | indent 8 }}
+        {{- end}}
+        {{- end}}
+      {{- if $service.volume }}
+      volumes:
+      {{- range $volume_v := $service.volume }}
+      {{- $volume := dict "volume" $volume_v "service_name" $service.name }}
+      {{- include "volume.template" $volume | indent 6 }}
+      {{- end}}
+      {{- end}}
+{{- end }}

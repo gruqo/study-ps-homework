@@ -1,0 +1,36 @@
+{{- range $service := .Values.services }}
+---
+{{- if not (or (eq $service.name "rabbitmq") (eq $service.name "converter")) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ $service.name }}-ingress"
+  namespace: {{ $.Values.common.namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/add-base-url: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: {{ $.Values.common_net.host }}
+    http:
+      paths:
+      {{- range $port := $service.net }}
+      - path: {{ $port.path }}
+        pathType: Prefix
+        backend:
+          service:
+            name: "{{ $service.name }}-{{ $.Values.common_net.service_type }}"
+            port:
+              number: {{ $port.port }}
+      {{- if $port.path_2 }}
+      - path: {{ $port.path_2 }}
+        pathType: Prefix
+        backend:
+          service:
+            name: "{{ $service.name }}-{{ $.Values.common_net.service_type }}"
+            port:
+              number: {{ $port.port }}
+      {{- end }}
+      {{- end }}
+{{- end }}
+{{- end }}
