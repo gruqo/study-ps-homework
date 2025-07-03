@@ -14,3 +14,4 @@
 | 10.7 | Знакомство с Helm | ✔ | - |
 | 11.8 | Шаблоны | ✔ | - |
 | 12.13 | Продвинутые шаблоны | ✔ | Перед деплоем необходимо создать неймспейс используя команду:<br>```kubectl create namespace conv-app```<br><br>Для деплоя использовать команду:<br>```install conv-release helm-conv --namespace=conv-app``` |
+| 14.10 | Использование Charts | ✔ | Перед деплоем необходимо создать неймспейс используя команду:<br>```kubectl create namespace conv-app```<br><br>Для деплоя использовать команду:<br>``` helm secrets install conv-release ./helm-conv -f ./secrets/prod/secrets.yaml -n conv-app```<br><br>Для запуска теста использовать команду:<br>``` helm test conv-release``` |

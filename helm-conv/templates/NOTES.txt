@@ -1,1 +1,2 @@
 Вы успешно установили приложение {{ .Release.Name }} {{ .Chart.Version }}
+Откройте веб-браузер и перейдите по адресу: '{{ .Values.common_net.protocol }}://{{ .Values.common_net.host }}'

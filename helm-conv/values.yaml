@@ -1,9 +1,6 @@
 common:
   namespace: conv-app
   configMapName: configmaps-vars
-  amqp_hostname: rabbitmq-clusterip
-  amqp_exchange: demo
-  ampq_queue: converter
 
 common_net:
   host: conv.test
@@ -24,8 +21,9 @@ services:
     limits:
       memory: "320Mi"
       cpu: "200m"
-    envs:
-    - VITE_DOMAIN
+    secrets:
+      - name: VITE_DOMAIN
+        key: VITE_DOMAIN
   - name: api
     components: conv-backend
     image:
@@ -37,9 +35,6 @@ services:
         path: "/api"
         path_2: "/uploads"
         protocol: TCP
-      # - port: 3000
-      #   path: "/uploads"
-      #   protocol: TCP
     limits:
       memory: "320Mi"
       cpu: "200m"
@@ -48,14 +43,15 @@ services:
          class_name: local-path
          capacity: 100Mi
          mount_path: /opt/app/uploads
-    envs:
-      - AMQP_HOSTNAME
-      - AMQP_EXCHANGE
     secrets:
       - name: AMQP_USER
         key: AMQP_USER_NAME
       - name: AMQP_PASSWORD
         key: AMQP_USER_PASSWORD
+      - name: AMQP_HOSTNAME
+        key: AMQP_HOSTNAME
+      - name: AMQP_EXCHANGE
+        key: AMQP_EXCHANGE
   - name: converter
     components: converter
     image:
@@ -68,15 +64,17 @@ services:
     limits:
       memory: "320Mi"
       cpu: "200m"
-    envs:
-      - AMQP_HOSTNAME
-      - AMQP_EXCHANGE
-      - AMQP_QUEUE
     secrets:
       - name: AMQP_USER
         key: AMQP_USER_NAME
       - name: AMQP_PASSWORD
         key: AMQP_USER_PASSWORD
+      - name: AMQP_HOSTNAME
+        key: AMQP_HOSTNAME
+      - name: AMQP_EXCHANGE
+        key: AMQP_EXCHANGE
+      - name: AMQP_QUEUE
+        key: AMQP_QUEUE
   - name: rabbitmq
     components: rabbitmq
     image:
