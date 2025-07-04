@@ -1,0 +1,5 @@
+{{- range $service := .Values.services }}
+{{- if $service.volume }}
+{{- include "pv-pvc.template" (dict "Values" $.Values "service" $service) }}
+{{- end }}
+{{- end }}
